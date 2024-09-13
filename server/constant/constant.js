@@ -1,0 +1,4 @@
+ALERT='ALERT'
+REFETCH_CHAT='REFETCH_CHAT'
+
+module.exports = { ALERT, REFETCH_CHAT };
