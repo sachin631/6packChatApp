@@ -11,7 +11,7 @@ const user_request_Schema = new mongoose.Schema({
   },
   status: {
     type: String,
-    default: 2, //1 accept 2 //rejected //3 pending
+    default: 3, //1 accept 2 //rejected //3 pending
   },
 },{timestamps:true});
 

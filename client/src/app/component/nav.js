@@ -5,21 +5,53 @@ import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
 import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { toast,ToastContainer } from "react-toastify";
+import axios_client from "../lib/axio.lib";
+import "react-toastify/dist/ReactToastify.css";
 
 const Nav = () => {
-    let router=useRouter()
+  let router = useRouter();
+  let queryClient = useQueryClient();
+  let on_logout = async () => {
+    mutaution.mutate()
+  }
+
+  const mutaution = useMutation({
+    mutationFn: async () => {
+      const res = await axios_client.get("/user/logout");
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success("Logout successfully");
+      setTimeout(() => {
+        router.push("/login");
+      }, 1000);
+    },
+
+    onError: (error) => {
+      console.error("Error:", error);
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+    }
+  });
+
   return (
     <div>
       <section className="flex justify-between">
-        <Button variant="contained" onClick={()=>{router.push('/')}}>Logo</Button>
+        <Button variant="contained" onClick={() => { router.push('/') }}>Logo</Button>
         <div className="flex gap-2">
-         
+
 
           <PopupState variant="popover" popupId="demo-popup-popover">
             {(popupState) => (
               <div>
                 <Button variant="contained" {...bindTrigger(popupState)}>
-                search
+                  search
                 </Button>
                 <Popover
                   {...bindPopover(popupState)}
@@ -36,18 +68,18 @@ const Nav = () => {
                     <h1 className="text-2xl">Search</h1>
                     <input type="text" className="m-4 border-solid border-2 border-black rounded px-3" placeholder="find user and send req " />
                     <div className="flex flex-col gap-4 h-[30vh]">
-                        <div className="flex gap-4 justify-center items-center">
-                            <div>user1</div>
-                            <Button variant="contained">send request</Button>
-                        </div>
-                        <div className="flex gap-4 justify-center items-center">
-                            <div>user1</div>
-                            <Button variant="contained">send request</Button>
-                        </div>
-                        <div className="flex gap-4 justify-center items-center">
-                            <div>user1</div>
-                            <Button variant="contained">send request</Button>
-                        </div>
+                      <div className="flex gap-4 justify-center items-center">
+                        <div>user1</div>
+                        <Button variant="contained">send request</Button>
+                      </div>
+                      <div className="flex gap-4 justify-center items-center">
+                        <div>user1</div>
+                        <Button variant="contained">send request</Button>
+                      </div>
+                      <div className="flex gap-4 justify-center items-center">
+                        <div>user1</div>
+                        <Button variant="contained">send request</Button>
+                      </div>
                     </div>
                   </Typography>
                 </Popover>
@@ -59,7 +91,7 @@ const Nav = () => {
             {(popupState) => (
               <div>
                 <Button variant="contained" {...bindTrigger(popupState)}>
-                 create Group
+                  create Group
                 </Button>
                 <Popover
                   {...bindPopover(popupState)}
@@ -76,34 +108,35 @@ const Nav = () => {
                     <h1 className="text-2xl">New group</h1>
                     <input type="text" className="m-4 border-solid border-2 border-black rounded px-3" placeholder="group name " />
                     <div className="flex flex-col gap-4 h-[30vh]">
-                        <div className="flex gap-4 justify-center items-center">
-                            <div>user1</div>
-                            <Button variant="contained">Add</Button>
-                        </div>
-                        <div className="flex gap-4 justify-center items-center">
-                            <div>user1</div>
-                            <Button variant="contained">Add</Button>
-                        </div>
-                        <div className="flex gap-4 justify-center items-center">
-                            <div>user1</div>
-                            <Button variant="contained">Add</Button>
-                        </div>
+                      <div className="flex gap-4 justify-center items-center">
+                        <div>user1</div>
+                        <Button variant="contained">Add</Button>
+                      </div>
+                      <div className="flex gap-4 justify-center items-center">
+                        <div>user1</div>
+                        <Button variant="contained">Add</Button>
+                      </div>
+                      <div className="flex gap-4 justify-center items-center">
+                        <div>user1</div>
+                        <Button variant="contained">Add</Button>
+                      </div>
                     </div>
                     <div className="flex justify-center items-center">
-                         <Button variant="contained" className="flex justify-center items-center">Create</Button>
+                      <Button variant="contained" className="flex justify-center items-center">Create</Button>
                     </div>
-                    
+
                   </Typography>
                 </Popover>
               </div>
             )}
           </PopupState>
-          
-          <Button variant="contained" onClick={()=>{router.push('/groups')}}>My Groups</Button>
+
+          <Button variant="contained" onClick={() => { router.push('/groups') }}>My Groups</Button>
           <Button variant="contained">notification</Button>
-          <Button variant="contained">exit</Button>
+          <Button variant="contained" onClick={on_logout}>exit</Button>
         </div>
       </section>
+      <ToastContainer/>
     </div>
   );
 };

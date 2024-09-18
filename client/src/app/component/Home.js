@@ -1,7 +1,32 @@
+'use client'
 import { Button } from "@mui/material";
-import React from "react";
+import { useMutation,useQueryClient } from "@tanstack/react-query";
+import React, { useEffect } from "react";
+import axios_client from "../lib/axio.lib";
+import { toast } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
 
 const Chat = () => {
+ 
+
+  const query=useQuery({
+    queryKey:["my_chat"],
+    queryFn:async()=>{
+      const res=await axios_client.get("/user/get_my_chat")
+      return res.data
+    },
+    onSuccess:(data)=>{
+      console.log(data)
+    },
+    onError:(error)=>{
+      console.log(error,'err')
+    }
+  });
+  console.log(query,'query is here')
+  if (query.isError) {
+    return <div>Error loading chat data: {query.error.response.data.message}</div>;
+  }
+  
   return (
     <div className="h-[70vh]">
       <section className="flex ga-4 mt-8 h-[80vh]">
@@ -16,20 +41,7 @@ const Chat = () => {
           <div>user2</div>
           <div>user3</div>
           <div>user1</div>
-          <div>user2</div>
-          <div>user3</div>
-          <div>user1</div>
-          <div>user2</div>
-          <div>user3</div>
-          <div>user1</div>
-          <div>user2</div>
-          <div>user3</div>
-          <div>user1</div>
-          <div>user2</div>
-          <div>user3</div>
-          <div>user1</div>
-          <div>user2</div>
-          <div>user3</div>
+         
         </div>
         {/* chat box */}
         <div className="border-black border-2 w-[60vw] overflow-auto">

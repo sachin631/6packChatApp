@@ -10,7 +10,7 @@ import axios_client from "../lib/axio.lib";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Register = () => {
-  
+
   const {
     handleSubmit,
     register,
@@ -69,7 +69,7 @@ const Register = () => {
             )}
           </div>
           <div className="flex flex-col text-black">
-          <label>user bio</label>
+            <label>user bio</label>
             <input
               type="text"
               placeholder="bio"
@@ -81,7 +81,7 @@ const Register = () => {
             )}
           </div>
           <div className="flex flex-col text-black">
-          <label>email </label>
+            <label>email </label>
             <input
               type="email"
               placeholder="Email"

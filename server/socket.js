@@ -1,4 +1,15 @@
 const { Server } = require("socket.io");
+const { NEW_MESSAGE } = require("./constant/constant");
+const { v4: uuid } = require('uuid');
+const user_message_model = require("./models/user.messages.model");
+
+
+let userSocketIDs = new Map();
+const getSockets = (users = []) => {
+  return users.map((curelem) => {
+    userSocketIDs.get(curelem._id.toString()) //here we got socket id of all login user
+  })
+}
 
 const setup_socket = (server) => {
   const io = new Server(server, {
@@ -9,13 +20,54 @@ const setup_socket = (server) => {
     },
   });
 
-  io.on('connect',(socket)=>{
-    console.log('connected successfuly backend side with id ',socket.id);
+  io.on('connect', (socket) => {
+    console.log('connected successfuly backend side with id ', socket.id);
 
-     //#socket.on to disconnect 
-     socket.on('disconnect',()=>{
-        console.log('socket is disconncted successfuly here with id',socket.id)
-      })
+    socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
+
+      const user = {   //assuming user is login user here
+        _id: "dummy_id",
+        name: "dummy_name"
+      };
+
+      userSocketIDs.set(user._id.toString(), socket.id);
+
+      const messageForRealTime = {
+        content: message,
+        _id: uuid(),
+        sender: {
+          _id: user._id,
+          name: user.name
+        },
+        chat: chatId,
+        createdAt: new Date().toISOString()
+      }
+
+      const messageForDb = {
+        content: message,
+        sender: user._id,
+        chat: chatId
+      }
+      const userSockets = getSockets(members);
+      console.log(userSockets, 'userSockets')
+      io.to(userSockets).emit(NEW_MESSAGE, messageForRealTime);
+      io.to(userSockets).emit(NEW_MESSAGE, chatId) //for increment on chat liek new message
+
+      try{
+
+        await user_message_model.create(messageForDb);
+      }catch(err){
+        console.log(err);
+        return err;
+      }
+
+    });
+
+
+    //#socket.on to disconnect 
+    socket.on('disconnect', () => {
+      console.log('socket is disconncted successfuly here with id', socket.id)
+    })
 
     //#socket.emit to send particular socket
     // socket.emit('send_msg',`hello ${socket.id}`);
@@ -40,8 +92,8 @@ const setup_socket = (server) => {
     // });
 
 
-   
+
   })
 };
 
-module.exports=setup_socket
+module.exports = setup_socket

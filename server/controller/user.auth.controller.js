@@ -1,9 +1,10 @@
 const { default: mongoose } = require("mongoose");
-const { ALERT, REFETCH_CHAT } = require("../constant/constant");
+const { ALERT, REFETCH_CHAT, NEW_REQUEST } = require("../constant/constant");
 const userAuthModel = require("../models/user.auth.model");
 const user_chat_model = require("../models/user.chat.model");
 const message_model = require("../models/user.messages.model");
 const emit_event = require("../utils/features");
+const user_request_model = require("../models/user.request.model");
 
 const userController = {
   user_register: async (req, res) => {
@@ -64,11 +65,15 @@ const userController = {
     res
       .cookie("access_token", access_token, {
         expireIn: "1d",
-        httpOnly: true,
+        httpOnly: false,
+        
+       
       })
       .cookie("refresh_token", refresh_token, {
         expireIn: "10d",
-        httpOnly: true,
+        httpOnly: false,
+      
+       
       });
 
     return res.status(200).json({ message: "login successfully", user: user });
@@ -109,6 +114,86 @@ const userController = {
     } catch (err) {
       return res.status(400).json({ message: err.message });
     }
+  },
+
+  search_user: async (req, res) => {
+
+    let name = req.query.name || '';
+    const my_chat = await user_chat_model.find({ is_group_chat: false, members: req.loginUser });
+    //all user from my chat
+    const allUserFromMyChat = my_chat.map((curelem) => curelem.members).flat();
+    //all users except me and friend 
+    const allUserExceptMeAndFriends = await userAuthModel.find({
+      _id: { $nin: allUserFromMyChat },
+      name: { $regex: name, $options: 'i' }
+    })
+    console.log(my_chat);
+    return res.status(200).json({ message: 'fetched successfuly', data: allUserExceptMeAndFriends });
+  },
+
+  send_friend_request: async (req, res) => {
+    const sender_id = req.loginUser;
+
+    const receiver_id = req.body.receiver_id;
+    const isAlreadyRequest = await user_request_model.find({
+      $or: [
+        { sender: sender_id, receiver: receiver_id },
+        { sender: receiver_id, receiver: sender_id }
+
+      ]
+    });
+    console.log(isAlreadyRequest, 'isAlreadyRequest');
+
+    if (isAlreadyRequest.length > 0) {
+      return res.status(400).json({ message: "request already sent", data: isAlreadyRequest });
+    }
+    let request = await user_request_model.create({
+      sender: sender_id,
+      receiver: receiver_id
+    });
+    if (!request) {
+      return res.status(400).json({ message: "request send failed", data: null });
+    }
+    emit_event(req, NEW_REQUEST, [receiver_id]);
+    return res.status(200).json({ message: "request send successfully", data: request });
+
+  },
+  accept_friend_request: async (req, res) => {
+    const { req_id, req_status } = req.body;
+    console.log(req_id, 'req_id', req_status, 'req_status');
+    const request = await user_request_model.findById(req_id);
+    if (!request) {
+      return res.status(400).json({ message: "request not found", data: null });
+    }
+
+    const update_req = await user_request_model.findByIdAndUpdate(req_id, { status: req_status }, { new: true });
+    console.log(update_req, 'update_req');
+    if (!update_req) {
+      return res.status(400).json({ message: "request update failed", data: null });
+    }
+    emit_event(req, REFETCH_CHAT, [update_req.receiver, update_req.sender]);
+    return res.status(200).json({ message: "request update successfully", data: update_req });
+  },
+
+  get_my_friends:async(req,res)=>{
+    const user_id = req.loginUser;
+    const my_friends=await user_chat_model.find({members:user_id,is_group_chat:false}).populate("members");
+    if(my_friends.length===0){
+      return res.status(400).json({message:"my friends not found",data:null});
+    }
+    return res.status(200).json({message:"my friends fetched successfully",data:my_friends})
+  },
+
+  getNotification: async (req, res) => {
+    const user_id = req.loginUser;
+    console.log(user_id, 'user_id');
+    const notification = await user_request_model
+      .find({ status: 3, receiver: user_id })
+    // .populate("sender");
+    if (!notification) {
+      return res.status(400).json({ message: "notification not found", data: null });
+    }
+    return res.status(200).json({ message: "notification fetched successfully", data: notification });
   },
 
   chatHistory: async (req, res) => {
@@ -243,23 +328,104 @@ const userController = {
       .status(200)
       .json({ data: my_groups, message: "groups fetched successfully" });
   },
+
   add_member_to_group: async (req, res) => {
-    const {group_id,member_id}=req.body;
-    const add_mem=await user_chat_model.findById({_id:group_id});
-    if(!add_mem){
-      return  res.status(400).json({ data: null, message: "updation failed" });
+    const { group_id, member_id } = req.body;
+    const add_mem = await user_chat_model.findById({ _id: group_id });
+    if (!add_mem) {
+      return res.status(400).json({ data: null, message: "updation failed" });
     }
-    let is_mem=add_mem.members.find((curelem)=>{
-       return curelem.equals(new mongoose.Types.ObjectId(member_id));
+    let is_mem = add_mem.members.find((curelem) => {
+      return curelem.equals(new mongoose.Types.ObjectId(member_id));
     });
-    console.log(is_mem,'is__mem');
-    if(is_mem){
-        return res.status(400).json({ data: add_mem, message: "member already existed" });
+    console.log(is_mem, 'is__mem');
+    if (is_mem) {
+      return res.status(400).json({ data: add_mem, message: "member already existed" });
     }
     add_mem.members.push(member_id);
     await add_mem.save();
-   return res.status(200).json({ data: add_mem, message: "member added successfully" });
+    emit_event(req, ALERT, member_id, `${member_id} has been added to the group`);
+    emit_event(req, REFETCH_CHAT, member_id);
+    return res.status(200).json({ data: add_mem, message: "member added successfully" });
   },
+
+  remove_member: async (req, res) => {
+    const { group_id, member_id } = req.body;
+    console.log(member_id, 'member_di')
+    const group = await user_chat_model.findById({ _id: group_id });
+    if (!group) {
+      return res.status(400).json({ data: null, message: "groud not exit with given credentials" });
+    }
+    const rest_mem = group?.members.filter((curelem) => !curelem.equals(new mongoose.Types.ObjectId(member_id)));
+    console.log(rest_mem, 'rest_mem')
+    group.members = rest_mem;
+    await group.save();
+    emit_event(req, ALERT, member_id, `${member_id} has been removed from the group`);
+    emit_event(req, REFETCH_CHAT, member_id);
+    return res.status(200).json({ data: group, message: "user deleted successfully" });
+
+  },
+
+  leave_group: async (req, res) => {
+    const group_id = req.params.group_id;
+    //find group//remove login member from this group//is login mem is admin then make other creator
+    let group = await user_chat_model.findById({ _id: group_id });
+    if (!group) {
+      return res.status(200).json({ data: null, message: "group is not found" });
+    }
+    let members = group?.members;
+    let leaving_member = req.loginUser;
+    let res_mem = members.filter((curelem) => !curelem.equals(new mongoose.Types.ObjectId(leaving_member)));
+    if (req.loginUser.toString() == group.creator.toString()) {
+      group.creator = res_mem[0];
+    }
+    group.members = res_mem;
+    await group.save();
+    emit_event(req, ALERT, group.members, `${group.name} has been removed from the group`);
+    emit_event(req, REFETCH_CHAT, group.members);
+    return res.status(200).json({ data: group, message: "you leaved this group successfully" });
+  },
+  chatDetails: async (req, res) => {
+    const chat_id = req.params.chat_id;
+    const chat_detail = await user_chat_model.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(chat_id)
+        }
+      },
+    ]);
+    if (!chat_detail) {
+      return res.status(400).json({ data: null, message: "chat_details not found" });
+    }
+    return res.status(200).json({ message: "chat fetched successfully", data: chat_detail });
+
+  },
+
+  delete_chat: async (req, res) => {
+    //delete only if login_user is creator//delete itns all member
+    const chat_id = req.params.chat_id;
+    const loginUser = req.loginUser;
+    const find_chat = await user_chat_model.findById({ _id: chat_id });
+    if (!find_chat) {
+      return res.status(400).json({ message: "chat not found", data: null });
+    }
+    let creator = find_chat.creator;
+    if (loginUser.toString() == creator.toString()) {
+      const delete_id = await user_chat_model.deleteOne({ _id: chat_id });
+      if (!delete_id) {
+        return res.status(400).json({ message: "error while deletion", data: null });
+      }
+      emit_event(req, REFETCH_CHAT, find_chat.members)
+      return res.status(400).json({ message: "chat deleted successfully", data: null });
+    } else {
+      return res.status(200).json({ message: "only admin can delete the group", data: null });
+    }
+    //also need to delete messgaes of this chat
+
+
+
+  }
+
 };
 
 module.exports = { ...userController };

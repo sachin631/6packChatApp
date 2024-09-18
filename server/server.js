@@ -13,11 +13,10 @@ const setup_socket=require('./socket');
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cors({
-  origin: ['http://localhost:3000','http://localhost:3001'], // Replace with your frontend's domain
+  origin: 'http://localhost:3000', // Replace with your frontend's domain
   credentials: true, // Allow credentials (cookies) to be sent
 }));
 app.use(cookie_parser());
-
 
 
 //Application Middlewares
