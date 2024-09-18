@@ -10,12 +10,12 @@ const express = require("express");
 const { login_middleware } = require("../middlewares/login.middlewares")
 const user_auth_router = express.Router();
 
-user_auth_router.post("/user/register", user_register);
-user_auth_router.post('/user/login', user_login);
-user_auth_router.get('/user/logout', user_logout);
-user_auth_router.get('/user/user_list', user_list);
-user_auth_router.get('/user/details', login_middleware, user_details);
-user_auth_router.get('/user/search_user', login_middleware, search_user);
+user_auth_router.post("/user/register", user_register);//done
+user_auth_router.post('/user/login', user_login); //done
+user_auth_router.get('/user/logout', user_logout); //done
+user_auth_router.get('/user/user_list', user_list); 
+user_auth_router.get('/user/details', login_middleware, user_details);//done
+user_auth_router.get('/user/search_user', login_middleware, search_user); //done
 user_auth_router.post('/user/send_friend_request',login_middleware,send_friend_request);
 user_auth_router.post('/user/accept_friend_request',login_middleware,accept_friend_request);
 user_auth_router.get('/user/getNotification',login_middleware,getNotification) ;
