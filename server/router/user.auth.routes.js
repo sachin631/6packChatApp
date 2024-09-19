@@ -1,10 +1,10 @@
 const { user_register, user_login, user_logout, user_list,
     user_details, chatHistory, create_group, get_my_chat, get_my_groups,
-    add_member_to_group, remove_member, leave_group, chatDetails, delete_chat, search_user, 
+    add_member_to_group, remove_member, leave_group, chatDetails, delete_chat, search_user,
     send_friend_request,
     accept_friend_request,
     getNotification,
-    get_my_friends} = require("../controller/user.auth.controller");
+    get_my_friends } = require("../controller/user.auth.controller");
 
 const express = require("express");
 const { login_middleware } = require("../middlewares/login.middlewares")
@@ -13,13 +13,13 @@ const user_auth_router = express.Router();
 user_auth_router.post("/user/register", user_register);//done
 user_auth_router.post('/user/login', user_login); //done
 user_auth_router.get('/user/logout', user_logout); //done
-user_auth_router.get('/user/user_list', user_list); 
+user_auth_router.get('/user/user_list', user_list);
 user_auth_router.get('/user/details', login_middleware, user_details);//done
 user_auth_router.get('/user/search_user', login_middleware, search_user); //done
-user_auth_router.post('/user/send_friend_request',login_middleware,send_friend_request);
-user_auth_router.post('/user/accept_friend_request',login_middleware,accept_friend_request);
-user_auth_router.get('/user/getNotification',login_middleware,getNotification) ;
-user_auth_router.get('/user/get_my_friends',login_middleware,get_my_friends);
+user_auth_router.post('/user/send_friend_request', login_middleware, send_friend_request); //done
+user_auth_router.post('/user/accept_friend_request', login_middleware, accept_friend_request);
+user_auth_router.get('/user/getNotification', login_middleware, getNotification); //done
+user_auth_router.get('/user/get_my_friends', login_middleware, get_my_friends);
 // user_auth_router.get('/chat/history/:userId',login_middleware,chatHistory)
 //chat module
 user_auth_router.post('/user/create_group', login_middleware, create_group);

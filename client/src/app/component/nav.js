@@ -15,6 +15,7 @@ const Nav = () => {
   let router = useRouter();
   const [search, setSearch] = useState();
   const [name, setName] = useState("");
+  const [myNotification, setMyNotification] = useState();
 
   let queryClient = useQueryClient();
   let on_logout = async () => {
@@ -64,7 +65,38 @@ const Nav = () => {
     toast.error(query.error.response.data.message);
   }
 
+  let on_send_request = async (receiver_id) => {
+    send_friend_request_mutation.mutate(receiver_id);
+  };
+  //send_friend_request
+  const send_friend_request_mutation = useMutation({
+    mutationFn: async (receiver_id) => {
+      const res = await axios_client.post("/user/send_friend_request", {
+        receiver_id: receiver_id,
+      });
+      return res?.data;
+    },
+    onSuccess: () => {
+      toast.success("friend request send successfully");
+    },
+    onError: (error) => {
+      toast.error(error.response.data.message);
+    },
+  });
 
+  //user/getNotification api
+  const my_notification_query = useQuery({
+    queryKey: ["my_notification"],
+    queryFn: async () => {
+      const res = await axios_client.get("/user/getNotification");
+      setMyNotification(res.data);
+      return res?.data;
+    },
+  });
+  if (my_notification_query.isError) {
+    toast.error(my_notification_query.error.response.data.message);
+  }
+  console.log(myNotification, "myNotificationmyNotification");
 
   return (
     <div>
@@ -108,7 +140,12 @@ const Nav = () => {
                         return (
                           <div className="flex gap-4 justify-center items-center">
                             <div className="">{curelem.name}</div>
-                            <Button variant="contained">send request</Button>
+                            <Button
+                              variant="contained"
+                              onClick={() => on_send_request(curelem?._id)}
+                            >
+                              send request
+                            </Button>
                           </div>
                         );
                       })}
@@ -179,7 +216,51 @@ const Nav = () => {
           >
             My Groups
           </Button>
-          <Button variant="contained">notification</Button>
+
+          <PopupState variant="popover" popupId="demo-popup-popover">
+            {(popupState) => (
+              <div>
+                <Button variant="contained" {...bindTrigger(popupState)}>
+                  Notifications
+                </Button>
+                <Popover
+                  {...bindPopover(popupState)}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "center",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "center",
+                  }}
+                >
+                  <Typography sx={{ p: 2 }}>
+                    <h1 className="text-2xl">My notifications</h1>
+
+                    <div className="flex flex-col gap-4 h-[30vh]">
+                      <div className="flex gap-4 justify-center items-center">
+                        {myNotification?.data.map((curelem) => {
+                          return (
+                            <div className="flex gap-4 justify-center items-center">
+                              <div className="text-center">{curelem.sender.name} sent you friend request</div>
+                              <Button variant="contained">Accept</Button>
+                              <Button
+                                variant="contained"
+                                className="bg-red-500"
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  
+                  </Typography>
+                </Popover>
+              </div>
+            )}
+          </PopupState>
           <Button variant="contained" onClick={on_logout}>
             exit
           </Button>

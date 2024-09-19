@@ -189,7 +189,7 @@ const userController = {
     console.log(user_id, 'user_id');
     const notification = await user_request_model
       .find({ status: 3, receiver: user_id })
-    // .populate("sender");
+    .populate("sender");
     if (!notification) {
       return res.status(400).json({ message: "notification not found", data: null });
     }
