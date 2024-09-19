@@ -28,7 +28,7 @@ user_auth_router.get('/user/get_my_group', login_middleware, get_my_groups);
 user_auth_router.put('/user/add_member_to_group', login_middleware, add_member_to_group);
 user_auth_router.delete('/user/remove_member', login_middleware, remove_member);
 user_auth_router.delete('/user/leave_group/:group_id', login_middleware, leave_group);
-user_auth_router.get('/user/chatDetails/:chat_id', login_middleware, chatDetails);
+user_auth_router.get('/user/chatDetails', login_middleware, chatDetails); //done=>>
 user_auth_router.delete('/user/delete_chat/:chat_id', login_middleware, delete_chat);
 //get messgaes of particular chat by chat _id
 

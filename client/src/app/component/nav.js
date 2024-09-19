@@ -16,6 +16,7 @@ const Nav = () => {
   const [search, setSearch] = useState();
   const [name, setName] = useState("");
   const [myNotification, setMyNotification] = useState();
+  const [AcceptReject,setAcceptReject]=useState();
 
   let queryClient = useQueryClient();
   let on_logout = async () => {
@@ -74,6 +75,7 @@ const Nav = () => {
       const res = await axios_client.post("/user/send_friend_request", {
         receiver_id: receiver_id,
       });
+      queryClient.invalidateQueries(["my_notification"]);
       return res?.data;
     },
     onSuccess: () => {
@@ -96,7 +98,30 @@ const Nav = () => {
   if (my_notification_query.isError) {
     toast.error(my_notification_query.error.response.data.message);
   }
-  console.log(myNotification, "myNotificationmyNotification");
+
+
+  //user/accept_friend_request
+  let on_accept_request=async(req_id,req_status)=>{
+    accept_friend_request_mutation.mutate({req_id:req_id,req_status:req_status});
+  }
+
+
+  const accept_friend_request_mutation = useMutation({
+    mutationFn: async (data) => {
+      const res=await axios_client.post("/user/accept_friend_request",data);
+      setAcceptReject(res.data);
+      queryClient.invalidateQueries(["my_chat"]);
+      queryClient.invalidateQueries(["my_notification"]);
+      return res.data
+    },
+    onError:(error)=>{
+      toast.error(error.response.data.message);
+    },
+    onSuccess:()=>{
+        toast.success('updated successfully'); 
+    },
+  });
+  console.log(AcceptReject,"AcceptReject")
 
   return (
     <div>
@@ -243,10 +268,11 @@ const Nav = () => {
                           return (
                             <div className="flex gap-4 justify-center items-center">
                               <div className="text-center">{curelem.sender.name} sent you friend request</div>
-                              <Button variant="contained">Accept</Button>
+                              <Button variant="contained" onClick={() => on_accept_request(curelem._id,1)}>Accept</Button>
                               <Button
                                 variant="contained"
                                 className="bg-red-500"
+                                onClick={() => on_accept_request(curelem._id,2)}
                               >
                                 Reject
                               </Button>
