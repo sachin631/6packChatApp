@@ -16,6 +16,7 @@ const Chat = () => {
   const [loginUserDetails, setLoginUserDetails] = useState();
   const [members, setMembers] = useState();
   const [RealMessages, setRealMessages] = useState([]); // Initialize as an empty array
+  const [ChatHistory,setChatHistory]=useState([]);
   let socket = getSocket();
 
   useEffect(() => {
@@ -74,6 +75,20 @@ const Chat = () => {
     return toast.error(my_chat_details.error.response.data.message);
   }
 
+  const chat_history=useQuery({
+    queryKey:['chat_history'],
+    queryFn:async()=>{
+      const res=await axios_client.get(`/user/chathistory?chat_id=${chatId}`);
+      setChatHistory(res.data);
+      return res.data;
+    }
+
+  });
+
+  if(chat_history.isError){
+    return <div>{error.response.data.message}</div>
+  }
+console.log(ChatHistory,"chatHostory working")
   const userJoinDate = loginUserDetails?.data?.createdAt;
   const now_date = moment();
   const days_deff = now_date.diff(userJoinDate, "days");
@@ -97,7 +112,7 @@ const Chat = () => {
         </div>
 
         {/* Chat box */}
-        <div className="border-black border-2 w-[60vw] overflow-auto ">
+        <div className="border-black border-2 w-[60vw] overflow-auto">
           <div className="bg-blue-500 text-white  px-4 py-4 flex flex-col gap-4">
             {RealMessages?.length > 0 ? (
               RealMessages.map((message, i) => (

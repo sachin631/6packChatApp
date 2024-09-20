@@ -5,6 +5,7 @@ const user_chat_model = require("../models/user.chat.model");
 const message_model = require("../models/user.messages.model");
 const emit_event = require("../utils/features");
 const user_request_model = require("../models/user.request.model");
+const user_message_model = require("../models/user.messages.model");
 
 const userController = {
   user_register: async (req, res) => {
@@ -487,6 +488,24 @@ const userController = {
     }
     //also need to delete messgaes of this chat
   },
+  chat_history: async (req, res) => {
+    console.log('hkkkk')
+    const chat_id = req.query.chat_id;
+    console.log(chat_id,'hjkasdjasdaksdjakl;sjdal;ksjdakl;jsdalks')
+    const my_chat = await user_message_model.aggregate([
+      {
+        $match: {
+          chat: new mongoose.Types.ObjectId(chat_id)
+        }
+      }
+    ]);
+
+    if (!my_chat) {
+      return res.status(400).json({ message: "chat history not found", data: null });
+    }
+    res.status(200).json({ message: "chat history fetched successfully", data: my_chat })
+
+  }
 };
 
 module.exports = { ...userController };

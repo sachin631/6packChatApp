@@ -4,7 +4,8 @@ const { user_register, user_login, user_logout, user_list,
     send_friend_request,
     accept_friend_request,
     getNotification,
-    get_my_friends } = require("../controller/user.auth.controller");
+    get_my_friends,
+    chat_history } = require("../controller/user.auth.controller");
 
 const express = require("express");
 const { login_middleware } = require("../middlewares/login.middlewares")
@@ -23,16 +24,20 @@ user_auth_router.get('/user/get_my_friends', login_middleware, get_my_friends);
 // user_auth_router.get('/chat/history/:userId',login_middleware,chatHistory)
 //chat module
 user_auth_router.post('/user/create_group', login_middleware, create_group);
-user_auth_router.get('/user/get_my_chat', login_middleware, get_my_chat);///////////////////////
+user_auth_router.get('/user/get_my_chat', login_middleware, get_my_chat);//done
 user_auth_router.get('/user/get_my_group', login_middleware, get_my_groups);
 user_auth_router.put('/user/add_member_to_group', login_middleware, add_member_to_group);
 user_auth_router.delete('/user/remove_member', login_middleware, remove_member);
 user_auth_router.delete('/user/leave_group/:group_id', login_middleware, leave_group);
-user_auth_router.get('/user/chatDetails', login_middleware, chatDetails); //done=>>
+user_auth_router.get('/user/chatDetails', login_middleware, chatDetails); //done=>> //got members from this chat
 user_auth_router.delete('/user/delete_chat/:chat_id', login_middleware, delete_chat);
+user_auth_router.get('/user/chathistory', login_middleware, chat_history)
 //get messgaes of particular chat by chat _id
 
 
 
 
 module.exports = user_auth_router;
+
+
+// 4:20//
