@@ -36,7 +36,7 @@ const Nav = () => {
     },
 
     onError: (error) => {
-      console.error("Error:", error);
+  
       if (error.response && error.response.data) {
         toast.error(error.response.data.message);
       } else {
@@ -121,7 +121,7 @@ const Nav = () => {
         toast.success('updated successfully'); 
     },
   });
-  console.log(AcceptReject,"AcceptReject")
+  
 
   return (
     <div>

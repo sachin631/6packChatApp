@@ -20,9 +20,9 @@ const Register = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async (data) => {
-      console.log("/asdasdasdasd+++++++++++++++++");
+    
       const res = await axios_client.post("/user/register", data);
-      console.log(res, "asasd=>>>>>>>>>>>>>>>>>");
+  
       return res;
     },
     onSuccess: () => {
@@ -33,7 +33,7 @@ const Register = () => {
       }, 1000);
     },
     onError: (error) => {
-      console.error("Error:", error);
+     
       if (error.response && error.response.data) {
         toast.error(error.response.data.message);
       } else {

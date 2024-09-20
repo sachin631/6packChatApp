@@ -126,12 +126,10 @@ const userController = {
       name: { $regex: name, $options: "i" },
     });
 
-    return res
-      .status(200)
-      .json({
-        message: "fetched successfuly",
-        data: allUserExceptMeAndFriends,
-      });
+    return res.status(200).json({
+      message: "fetched successfuly",
+      data: allUserExceptMeAndFriends,
+    });
   },
 
   send_friend_request: async (req, res) => {
@@ -160,7 +158,7 @@ const userController = {
         .json({ message: "request send failed", data: null });
     }
     emit_event(req, NEW_REQUEST, [receiver_id]);
-    return res
+    return res //4:20 //7:20
       .status(200)
       .json({ message: "request send successfully", data: request });
   },
@@ -177,6 +175,11 @@ const userController = {
       { status: req_status },
       { new: true }
     );
+
+    const store_in_chat = await user_chat_model.create({
+      creator: new mongoose.Types.ObjectId(req.loginUser),
+      members: [req.loginUser, request.sender],
+    });
 
     if (!update_req) {
       return res
@@ -215,12 +218,10 @@ const userController = {
         .status(400)
         .json({ message: "notification not found", data: null });
     }
-    return res
-      .status(200)
-      .json({
-        message: "notification fetched successfully",
-        data: notification,
-      });
+    return res.status(200).json({
+      message: "notification fetched successfully",
+      data: notification,
+    });
   },
 
   chatHistory: async (req, res) => {
@@ -441,7 +442,7 @@ const userController = {
   },
   chatDetails: async (req, res) => {
     const chat_id = req.query.chat_id;
-    console.log(chat_id,'chat_d.........................')
+    console.log(chat_id, "chat_d.........................");
     const chat_detail = await user_chat_model.aggregate([
       {
         $match: {

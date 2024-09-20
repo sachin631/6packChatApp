@@ -23,7 +23,7 @@ user_auth_router.get('/user/get_my_friends', login_middleware, get_my_friends);
 // user_auth_router.get('/chat/history/:userId',login_middleware,chatHistory)
 //chat module
 user_auth_router.post('/user/create_group', login_middleware, create_group);
-user_auth_router.get('/user/get_my_chat', login_middleware, get_my_chat);
+user_auth_router.get('/user/get_my_chat', login_middleware, get_my_chat);///////////////////////
 user_auth_router.get('/user/get_my_group', login_middleware, get_my_groups);
 user_auth_router.put('/user/add_member_to_group', login_middleware, add_member_to_group);
 user_auth_router.delete('/user/remove_member', login_middleware, remove_member);

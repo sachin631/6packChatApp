@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const user_chat_Schema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, "name field is required"],
+    // required: [true, "name field is required"],
   },
   is_group_chat: {
     type: Boolean,

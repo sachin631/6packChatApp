@@ -28,7 +28,7 @@ const page = () => {
       }, 1000);
     },
     onError: (error) => {
-      console.error("Error:", error);
+      
       if (error.response && error.response.data) {
         toast.error(error.response.data.message);
       } else {
