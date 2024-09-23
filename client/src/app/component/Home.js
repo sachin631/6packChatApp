@@ -18,6 +18,7 @@ const Chat = () => {
   const [RealMessages, setRealMessages] = useState([]); // Initialize as an empty array
   const [ChatHistory,setChatHistory]=useState([]);
   let socket = getSocket();
+  let queryClient = useQueryClient();
 
   useEffect(() => {
     const handleNewMessage = (data) => {
@@ -32,6 +33,10 @@ const Chat = () => {
       socket.off(NEW_MESSAGE, handleNewMessage);
     };
   }, [socket]);
+
+  useEffect(()=>{
+    queryClient.invalidateQueries(["chat_history"]);
+  },[])
 
   // my_chat api //sidebar chat
   const query = useQuery({
@@ -81,12 +86,13 @@ const Chat = () => {
       const res=await axios_client.get(`/user/chathistory?chat_id=${chatId}`);
       setChatHistory(res.data);
       return res.data;
-    }
+    },
+    enabled:!!chatId
 
   });
 
   if(chat_history.isError){
-    return <div>{error.response.data.message}</div>
+    return <div>{chat_history?.error.response.data.message}</div>
   }
 console.log(ChatHistory,"chatHostory working")
   const userJoinDate = loginUserDetails?.data?.createdAt;
@@ -106,7 +112,7 @@ console.log(ChatHistory,"chatHostory working")
             >
               {curelem.is_group_chat
                 ? curelem.display_name
-                : curelem.members[0].name}
+                : curelem.members[1].name}
             </Button>
           ))}
         </div>
@@ -114,6 +120,20 @@ console.log(ChatHistory,"chatHostory working")
         {/* Chat box */}
         <div className="border-black border-2 w-[60vw] overflow-auto">
           <div className="bg-blue-500 text-white  px-4 py-4 flex flex-col gap-4">
+            {
+              ChatHistory?.data?.map((curelem,i)=>{
+                return (
+                  <div key={i} className="message mb-9 ">
+                  <div className="border-black border-2 w-[20%] px-4 flex flex-col">
+                    <div>
+                      <strong>{curelem?.sender[0]?.name}</strong>
+                    </div>
+                    <div className="text-bl">{curelem?.content}</div>
+                  </div>
+                </div>
+                )
+              })
+            }
             {RealMessages?.length > 0 ? (
               RealMessages.map((message, i) => (
                 <div key={i} className="message mb-9 ">

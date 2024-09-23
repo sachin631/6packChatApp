@@ -307,21 +307,33 @@ const userController = {
                       input: "$members",
                       as: "member",
                       cond: {
-                        $ne: [
-                          "$$member",
-                          new mongoose.Types.ObjectId(login_user),
-                        ],
-                      }, // Exclude login_user from members
+                        $ne: ["$$member._id", new mongoose.Types.ObjectId(login_user)], // Ensure you're matching IDs correctly
+                      },
                     },
                   },
-                  0, // Get the first member that is not login_user
+                  0,
                 ],
               },
             },
           },
         },
       },
+      {
+        $project: {
+          display_name: {
+            $cond: {
+              if: { $eq: ["$is_group_chat", true] },
+              then: "$name",
+              else: "$display_name.name", // Ensure you extract the name field
+            },
+          },
+          // Include other fields you may need
+          members: 1,
+          is_group_chat: 1,
+        },
+      },
     ]);
+    
 
     if (!my_chat) {
       return res.status(400).json({ data: my_chat, message: "chat not found" });
@@ -496,6 +508,14 @@ const userController = {
       {
         $match: {
           chat: new mongoose.Types.ObjectId(chat_id)
+        }
+      },
+      {
+        $lookup:{
+          from:"users",
+          localField:"sender",
+          foreignField:"_id",
+          as:"sender"
         }
       }
     ]);
